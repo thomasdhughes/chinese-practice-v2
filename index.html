@@ -1,167 +1,240 @@
 <!DOCTYPE html>
-<!-- Main page for the conversation app -->
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chinese Conversation Practice</title>
-<!-- Basic styling -->
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web Vocoder Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #22c55e;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+    }
 
-  /* floating header box */
-  #headerBox {
-    position: fixed;
-    top: 40px;
-    left: 10px;
-    right: 10px;
-    background: rgba(255,255,255,0.95);
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    z-index: 100;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-  #headerBox.collapsed {
-    transform: translateY(-120%);
-    opacity: 0;
-  }
-  #toggleHeader {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    background: #eee;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 2px 6px;
-    cursor: pointer;
-    z-index: 150;
-  }
+    * { box-sizing: border-box; }
 
-/* conversation transcript box */
-#transcript {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 10px;
-  height: 40vh;
-  width: 100%;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  font-size: 1.5em;
-  position: relative;
-  box-sizing: border-box;
-  margin-top: 40px;
-  margin-bottom: calc(50vh - 40px);
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 10% 20%, #1f2937 0, #0f172a 30%),
+                  radial-gradient(circle at 80% 10%, #111827 0, #0f172a 35%),
+                  #0f172a;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px 48px;
+    }
 
-#talkButton {
-  /* record button style */
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  border: none;
-  background-color: #4CAF50;
-  color: white;
-  font-size: 1em;
-  grid-row: 1 / span 2;
-  grid-column: 1;
-}
-#repeatButton {
-  /* repeat button style */
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  border: none;
-  background-color: #2196F3;
-  color: white;
-  font-size: 1em;
-  grid-row: 1;
-  grid-column: 2;
-}
-#translateButton {
-  /* english button style */
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  border: none;
-  background-color: #FFEB3B;
-  color: white;
-  font-size: 1em;
-  grid-row: 2;
-  grid-column: 2;
-}
-#repeatButton:disabled {
-  background-color: grey;
-}
-#translateButton:disabled {
-  background-color: grey;
-}
-#repeatButton:active, #translateButton:active {
-  transform: scale(0.95);
-}
-#controls {
-  position: fixed;
-  bottom: 20px;
-  left: 20px;
-  right: 20px;
-  height: calc(50vh - 40px);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 10px;
-}
-#talkButton.holding {
-  /* button pressed state */
-  background-color: #45A049;
-  transform: scale(0.95);
-}
+    main {
+      width: min(1100px, 100%);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
 
-</style>
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    header {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 8px 0 12px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 3vw, 36px);
+      letter-spacing: -0.5px;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .record-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .record-button {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, #16a34a, #22c55e);
+      color: #0b1425;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.25px;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+    }
+
+    .record-button:disabled {
+      cursor: not-allowed;
+      filter: grayscale(0.6);
+      opacity: 0.8;
+    }
+
+    .record-button:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow: 0 8px 30px rgba(34, 197, 94, 0.35);
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0b1221;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .chip svg { flex: none; }
+
+    .status {
+      min-height: 26px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .grid-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .effect-button {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0b1221;
+      color: var(--text);
+      padding: 14px 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 120ms ease, transform 120ms ease, background 120ms ease;
+    }
+
+    .effect-button:hover:not(:disabled) {
+      border-color: #334155;
+      transform: translateY(-1px);
+    }
+
+    .effect-button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .effect-title { font-weight: 700; display: block; }
+    .effect-desc { color: var(--muted); font-size: 13px; margin-top: 2px; display: block; }
+
+    .note {
+      grid-column: 1 / -1;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .log {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-height: 260px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .log li {
+      background: #0b1221;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 20px 12px 32px; }
+      .grid-buttons { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+    }
+  </style>
 </head>
 <body>
-<div id="toggleHeader">▲</div>
-<div id="headerBox">
-<h1>Chinese Conversation Practice</h1>
-<label>OpenAI API Key: <input type="password" id="apiKey"></label><br><br>
-<!-- practice scenario description -->
-<textarea id="scenario" rows="3" cols="60" placeholder="Describe your practice scenario here...
-- Ordering food at a restaurant
-- Shopping at a store or market
-- Asking for directions
-- Taking a taxi or ride share
-- Using public transportation
-- Checking into a hotel or Airbnb
-- Going to a doctor or pharmacy
-- Talking with a landlord or about your apartment
-- Paying bills or using mobile payment apps
-- Small talk with neighbors or locals
-- Introducing yourself and exchanging contact info
-- Making or declining plans with friends
-- Talking about your job or studies
-- Asking someone for help or clarification
-- Making a phone call
-- Reporting something lost or stolen
-- Handling a misunderstanding or disagreement
-- Explaining a personal emergency or health issue
-- Booking tickets
-- Asking for recommendations"></textarea><br>
-<!-- start or end the session -->
-<button id="startStop">Go</button>
-</div>
+  <main>
+    <header>
+      <h1>Vocoder Playground</h1>
+      <p class="lead">Record your voice, then hear it transformed with modern web audio effects.</p>
+    </header>
 
-<!-- conversation transcript -->
-<div id="transcript"></div>
-<div id="controls">
-  <!-- hold to record your voice -->
-  <button id="talkButton" disabled>说话时按住 (Press and hold while speaking)</button>
-  <!-- replay last teacher reply -->
-  <button id="repeatButton" disabled>请再说一次</button>
-  <!-- show english translation -->
-  <button id="translateButton" disabled>看看英文</button>
-</div>
+    <section class="panel record-card">
+      <div class="chip" id="micStatus">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+          <path d="M19 10a7 7 0 0 1-14 0" />
+          <line x1="12" x2="12" y1="19" y2="23" />
+          <line x1="8" x2="16" y1="23" y2="23" />
+        </svg>
+        Microphone ready
+      </div>
+      <button id="recordButton" class="record-button">Tap to record</button>
+      <div class="status" id="status">Waiting to record…</div>
+    </section>
 
-<audio id="ttsAudio"></audio>
-<script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
-<script src="script.js"></script>
+    <section class="panel">
+      <h2 style="margin-top: 0; margin-bottom: 12px;">Play it back</h2>
+      <p class="lead" style="margin-bottom: 16px;">Choose an effect to hear your take in different styles.</p>
+      <div class="grid-buttons">
+        <button class="effect-button" id="normalBtn" disabled>
+          <span class="effect-title">Clean</span>
+          <span class="effect-desc">Your voice, untouched.</span>
+        </button>
+        <button class="effect-button" id="echoBtn" disabled>
+          <span class="effect-title">Echo</span>
+          <span class="effect-desc">Feedback delay for spacious sound.</span>
+        </button>
+        <button class="effect-button" id="robotBtn" disabled>
+          <span class="effect-title">Robot</span>
+          <span class="effect-desc">Metallic ring modulation.</span>
+        </button>
+        <button class="effect-button" id="chipmunkBtn" disabled>
+          <span class="effect-title">Chipmunk</span>
+          <span class="effect-desc">Higher pitch &amp; speed.</span>
+        </button>
+        <button class="effect-button" id="deepBtn" disabled>
+          <span class="effect-title">Deep</span>
+          <span class="effect-desc">Slower, lower take.</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin-top: 0; margin-bottom: 12px;">Session log</h2>
+      <p class="lead" style="margin-bottom: 16px;">We keep a brief history so you always know what happened.</p>
+      <ul class="log" id="log"></ul>
+    </section>
+
+    <p class="note">All processing happens locally in your browser using the Web Audio API. No audio ever leaves your device.</p>
+  </main>
+  <script src="script.js"></script>
 </body>
 </html>
